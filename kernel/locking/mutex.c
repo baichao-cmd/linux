@@ -65,8 +65,14 @@ EXPORT_SYMBOL(__mutex_init);
  * Bit1 indicates unlock needs to hand the lock to the top-waiter
  * Bit2 indicates handoff has been done and we're waiting for pickup.
  */
-#define MUTEX_FLAG_WAITERS	0x01
-#define MUTEX_FLAG_HANDOFF	0x02
+// wait_list非空,即有任务阻塞在该mutex上,owner在unlock的时候必须要执行唤醒动作
+#define MUTEX_FLAG_WAITERS	0x01  
+/*
+* 为了防止mutex等待队列饿死,在唤醒的时候top waiter会设置该flag(由于乐观自旋的task不断的插入,唤醒的top waiter也未必一定会获取到锁),
+* 有了这个设定后,锁的owner在解锁的时候会将该锁转交给top waiter,而不是唤醒top waiter去和自旋的task竞争锁
+*/
+#define MUTEX_FLAG_HANDOFF	0x02  
+//表示mutex处于可以被锁住的状态,只等top waiter来持锁
 #define MUTEX_FLAG_PICKUP	0x04
 
 #define MUTEX_FLAGS		0x07

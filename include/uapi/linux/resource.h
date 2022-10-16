@@ -40,9 +40,13 @@ struct	rusage {
 	__kernel_long_t	ru_nivcsw;	/* involuntary " */
 };
 
+/*
+系统调用setrlimit来增减当前限制，但不能超出rlim_max指定的值。
+getrlimits用于检查当前限制。
+*/
 struct rlimit {
-	__kernel_ulong_t	rlim_cur;
-	__kernel_ulong_t	rlim_max;
+	__kernel_ulong_t	rlim_cur;  // 进程当前的资源限制，也称之为软限制（soft limit）
+	__kernel_ulong_t	rlim_max;  // 软限制的最大值，因此也称之为硬限制（hard limit）
 };
 
 #define RLIM64_INFINITY		(~0ULL)

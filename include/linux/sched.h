@@ -82,11 +82,11 @@ struct task_group;
  */
 
 /* Used in tsk->state: */
-#define TASK_RUNNING			0x00000000
-#define TASK_INTERRUPTIBLE		0x00000001
-#define TASK_UNINTERRUPTIBLE		0x00000002
-#define __TASK_STOPPED			0x00000004
-#define __TASK_TRACED			0x00000008
+#define TASK_RUNNING			0x00000000   // 进程处于可运行状态。这并不意味着已经实际分配了CPU。进程可能会一直等到调度器选中它。该状态确保进程可以立即运行，而无需等待外部事件。
+#define TASK_INTERRUPTIBLE		0x00000001   // 是针对等待某事件或其他资源的睡眠进程设置的。在内核发送信号给该进程表明事件已经发生时，进程状态变为TASK_RUNNING，它只要调度器选中该进程即可恢复执行。
+#define TASK_UNINTERRUPTIBLE		0x00000002  // 用于因内核指示而停用的睡眠进程。它们不能由外部信号唤醒，只能由内核亲自唤醒。
+#define __TASK_STOPPED			0x00000004    // 表示进程特意停止运行，例如，由调试器暂停。
+#define __TASK_TRACED			0x00000008    // 不是进程状态，用于从停止的进程中，将当前被调试的那些（使用ptrace机制）与常规的进程区分开来。
 /* Used in tsk->exit_state: */
 #define EXIT_DEAD			0x00000010
 #define EXIT_ZOMBIE			0x00000020

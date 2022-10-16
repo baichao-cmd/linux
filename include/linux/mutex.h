@@ -61,12 +61,24 @@
  *   locks and tasks (and only those tasks)
  */
 struct mutex {
-	atomic_long_t		owner;
-	raw_spinlock_t		wait_lock;
+	/**
+	 * count成员是mutex锁的本体,为0则说明锁没有被持有,非空则说明锁被持有.
+	 * count被分为两个区域: 3~63位存放锁的持有着的task_struct地址;
+	 *                    1~2位实现handoff机制;
+	 *                    0位表示wait_list是否为空;
+	 * 
+	 */
+	atomic_long_t		owner; // 记录了锁的持有者的task_struct地址,且低3bit记录了锁的状态;
+	raw_spinlock_t		wait_lock; // 用来保护wait_list链表的自旋锁
 #ifdef CONFIG_MUTEX_SPIN_ON_OWNER
-	struct optimistic_spin_queue osq; /* Spinner MCS lock */
+    /*
+	*在定义了CONFIG_MUTEX_SPIN_ON_OWNER宏的时候,mutex支持乐观自选机制,osq成员就是乐观自旋需要持有的MCS队列.
+	*optimistic_spin_queue只有一个tail成员,如果等于0,则表示一个空队列,没有乐观自旋的任务.
+	* 则tail指向一个节点是optimistic_spin_queue对象队列的尾部(tail并不是一个指针,它是一个cpu number,optimistic_spin_queue对象是per-cpu的,有了cpu number就可以定位到其optimistic_spin_queue对象)
+	*/
+	struct optimistic_spin_queue osq; /* Spinner MCS lock */   
 #endif
-	struct list_head	wait_list;
+	struct list_head	wait_list; // 等待链表,当无法获取锁并且不具备乐观自旋条件的时候需要挂入这个等待队列等着拿锁的进程会被记录在此list上,操作wait_list需要wait_lock的保护
 #ifdef CONFIG_DEBUG_MUTEXES
 	void			*magic;
 #endif
